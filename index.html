@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="card">
+        <div class="search">
+            <form id="search-form">
+                <input type="text" id="city-input" placeholder="Enter city name" spellcheck="false">
+                <button type="submit"><i class='bx bx-search-alt'></i></button>
+            </form>
+        </div>
+        
+        <!-- Weather display section -->
+        <div class="weather" style="display: none;">
+            <img src="" class="weather-icon" alt="Weather Icon">
+            <h1 class="temp">22°c</h1>
+            <h2 class="city">New York</h2>
+
+            <section class="details">
+                <div class="col">
+                    <img src="https://cdn-icons-png.flaticon.com/128/13944/13944027.png" alt="Humidity Icon">
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="https://cdn-icons-png.flaticon.com/128/11742/11742598.png" alt="Wind Speed Icon">
+                    <div>
+                        <p class="wind">15 km/h</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <div class="error-message" style="display: none; color: red;">City not found. Please try again.</div>
+    </div>
+
+    <!-- JavaScript for API integration -->
+    <script>
+        const apiKey = "ea97bc228f428ceeb4f5a0998c271226";
+        const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+
+        const searchForm = document.getElementById("search-form");
+        const searchBox = document.querySelector("#city-input");
+        const weatherIcon = document.querySelector(".weather-icon");
+        const weatherSection = document.querySelector(".weather");
+        const errorMessage = document.querySelector(".error-message");
+
+        async function checkWeather(city) {
+            if (!city) return; // Don't search for an empty city
+
+            try {
+                const response = await fetch(`${apiUrl}${city}&appid=${apiKey}`);
+                if (!response.ok) {
+                    throw new Error('City not found');
+                }
+                const data = await response.json();
+
+                // Update UI with weather information
+                document.querySelector(".city").innerText = data.name;
+                document.querySelector(".temp").innerText = Math.round(data.main.temp) + "°C";
+                document.querySelector(".humidity").innerText = data.main.humidity + "%";
+                document.querySelector(".wind").innerText = data.wind.speed + " km/h";
+                
+                // Set the weather icon based on the weather description
+                if (data.weather[0].main === "Clear") {
+                    weatherIcon.src = "https://openweathermap.org/img/wn/01d.png"; // Clear sky
+                } else if (data.weather[0].main === "Clouds") {
+                    weatherIcon.src = "https://openweathermap.org/img/wn/04d.png"; // Cloudy
+                } else if (data.weather[0].main === "Rain") {
+                    weatherIcon.src = "https://openweathermap.org/img/wn/10d.png"; // Rain
+                } else if (data.weather[0].main === "Drizzle") {
+                    weatherIcon.src = "https://openweathermap.org/img/wn/09d.png"; // Drizzle
+                } else if (data.weather[0].main === "Mist") {
+                    weatherIcon.src = "https://openweathermap.org/img/wn/50d.png"; // Mist
+                }
+
+                weatherSection.style.display = "block";  // Show the weather section
+                errorMessage.style.display = "none"; // Hide error message if successful
+            } catch (error) {
+                weatherSection.style.display = "none";  // Hide weather section on error
+                errorMessage.style.display = "block";  // Show error message
+            }
+        }
+
+        // Handle form submission
+        searchForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            checkWeather(searchBox.value);
+        });
+    </script>
+</body>
+</html>
